@@ -1,19 +1,59 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Product } from "../models/product.model.js"
 import { ApiError } from "../utils/ApiError.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const createProduct = asyncHandler(async (req, res) => {
+    const { name, price, description } = req.body;
 
+    if ([name, price, description].some((element) => element === "")) {
+        throw new ApiError(400, "All fields are required")
+    }
+
+    const existedProduct = await Product.findOne({
+        $or: [{ name }]
+    })
+
+    if (existedProduct) {
+        throw new ApiError(409, "Product already exists")
+    }
+
+    const imagePath = req.files?.image[0]?.path;
+
+    if (!imagePath) {
+        throw new ApiError(400, "Image is required")
+    }
+
+    const image = await uploadOnCloudinary(imagePath);
+
+    if (!image) {
+        throw new ApiError(500, "Internal server error")
+    }
+
+    const product = await Product.create({
+        name, 
+        price,
+        description,
+        image: image?.url || ""
+    })
+
+    const newProduct = await Product.findById(product._id)
+
+    if (!newProduct) {
+        throw new ApiError(500, "Something went wrong creating new product")
+    }
+
+    res.status(201).json(
+        new ApiResponse(201, newProduct, "Product created successfully")
+    )
 });
 
 const getProducts = asyncHandler(async (req, res) => {
     const products = await Product.find({});
 
     if (!products) {
-        return res.status(204).json(
-            new ApiError(204, "No products available")
-        )
+        throw new ApiError(204, "No products available")
     }
 
     res.status(200).json(
@@ -22,16 +62,16 @@ const getProducts = asyncHandler(async (req, res) => {
 });
 
 const updateProduct = asyncHandler(async (req, res) => {
+    const { id } = req.params;
 
+    
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status(404).json(
-            new ApiError(404, "Product not found")
-        );
+        throw new ApiError(404, "Product not found")
     }
 
     await Product.findByIdAndDelete(id)
