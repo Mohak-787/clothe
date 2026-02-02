@@ -40,4 +40,4 @@ const deleteProduct = asyncHandler(async (req, res) => {
     );
 });
 
-export { getProducts, updateProduct, deleteProduct }
+export { createProduct, getProducts, updateProduct, deleteProduct }
