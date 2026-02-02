@@ -63,8 +63,55 @@ const getProducts = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async (req, res) => {
     const { id } = req.params;
+    const { name, price, description } = req.body;
 
-    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ApiError(404, "Product not found")
+    }
+
+    const existedProduct = await Product.findOne({
+        $or: [{ name }],
+        _id: { $ne: id }
+    })
+
+    if (existedProduct) {
+        throw new ApiError(409, "Product with this name already exists")
+    }
+
+    const imagePath = req.files?.image[0]?.path;
+    let image;
+
+    if (imagePath) {
+        image = await uploadOnCloudinary(imagePath);
+
+        if (!image) {
+            throw new ApiError(500, "Internal server error")
+        }
+    }
+
+    const updatedData = {
+        name,
+        price,
+        description
+    };
+
+    if (image) {
+        updatedData.image = image.url;
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+        id,
+        updatedData,
+        { new: true }
+    );
+
+    if (!updatedProduct) {
+        throw new ApiError(500, "Something went wrong updating the product")
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, updatedProduct, "Product updated successfully")
+    );
 });
 
 const deleteProduct = asyncHandler(async (req, res) => {
