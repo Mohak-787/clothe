@@ -6,9 +6,9 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const createProduct = asyncHandler(async (req, res) => {
-    const { name, price, description } = req.body;
+    const { name, price, status,description } = req.body;
 
-    if ([name, price, description].some((element) => element === "")) {
+    if ([name, price, status,description].some((element) => element === "")) {
         throw new ApiError(400, "All fields are required")
     }
 
@@ -35,6 +35,7 @@ const createProduct = asyncHandler(async (req, res) => {
     const product = await Product.create({
         name, 
         price,
+        status,
         description,
         image: image?.url || ""
     })
@@ -64,7 +65,7 @@ const getProducts = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { name, price, description } = req.body;
+    const { name, price, status,description } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
         throw new ApiError(404, "Product not found")
@@ -93,6 +94,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     const updatedData = {
         name,
         price,
+        status,
         description
     };
 
