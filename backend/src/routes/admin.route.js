@@ -6,7 +6,7 @@ const router = Router();
 
 router.route("/products").get(getProducts);
 router.route("/products").post(upload.fields([{ name: "image", maxCount: 1 }]),createProduct);
-router.route("/products/:id").patch(updateProduct);
+router.route("/products/:id").patch(upload.fields([{ name: "image", maxCount: 1 }]), updateProduct);
 router.route("/products/:id").delete(deleteProduct);
 
 export default router;
