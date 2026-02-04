@@ -10,7 +10,18 @@ import {
 } from "@/components/ui/select";
 import { Search, MoreHorizontal, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Product, fetchProducts } from "@shared/api";
+import { Product, fetchProducts, createProduct } from "@shared/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -40,12 +51,43 @@ const getStatusLabel = (status: string) => {
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    price: '',
+    description: '',
+    status: 'in-stock',
+    image: null as File | null,
+  });
 
   useEffect(() => {
     fetchProducts()
       .then(setProducts)
       .catch((error) => console.error('Failed to fetch products:', error));
   }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.price || !formData.description || !formData.image) {
+      alert('Please fill all fields');
+      return;
+    }
+    try {
+      await createProduct({
+        name: formData.name,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        status: formData.status,
+        image: formData.image,
+      });
+      setProducts(await fetchProducts()); // Refetch products
+      setIsDialogOpen(false);
+      setFormData({ name: '', price: '', description: '', status: 'in-stock', image: null });
+    } catch (error) {
+      console.error('Failed to create product:', error);
+      alert('Failed to create product');
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col">
@@ -76,11 +118,94 @@ export default function Products() {
             </button>
           </div>
 
-          <Button
-            className="bg-[#c9a876] hover:bg-[#b89860] text-white rounded-lg font-medium"
-          >
-            + Add Product
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#c9a876] hover:bg-[#b89860] text-white rounded-lg font-medium">
+                + Add Product
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add New Product</DialogTitle>
+                <DialogDescription>
+                  Enter the details for the new product.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit}>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="price" className="text-right">
+                      Price
+                    </Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="description" className="text-right">
+                      Description
+                    </Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="status" className="text-right">
+                      Status
+                    </Label>
+                    <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="in-stock">In Stock</SelectItem>
+                        <SelectItem value="low-stock">Low Stock</SelectItem>
+                        <SelectItem value="out-of-stock">Out of Stock</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="image" className="text-right">
+                      Image
+                    </Label>
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setFormData({ ...formData, image: e.target.files?.[0] || null })}
+                      className="col-span-3"
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Add Product</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Description */}
