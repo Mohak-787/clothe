@@ -48,17 +48,6 @@ export default function Products() {
   }, []);
 
   return (
-    case "in-stock":
-      return "In Stock";
-    case "low-stock":
-      return "Low Stock";
-    case "out-of-stock":
-      return "Out of Stock";
-  }
-};
-
-export default function Products() {
-  return (
     <div className="flex-1 flex flex-col">
       <Header
         title="Product Management"
