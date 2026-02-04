@@ -9,72 +9,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, MoreHorizontal, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Product, fetchProducts } from "@shared/api";
 
-interface Product {
-  id: string;
-  image: string;
-  name: string;
-  sku: string;
-  category: string;
-  price: number;
-  stock: number;
-  status: "in-stock" | "low-stock" | "out-of-stock";
-}
-
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=100&h=100&fit=crop",
-    name: "Classic Silk Button-Down",
-    sku: "CSB-001",
-    category: "Menswear",
-    price: 89.0,
-    stock: 145,
-    status: "in-stock",
-  },
-  {
-    id: "2",
-    image: "https://images.unsplash.com/photo-1539533057440-7da6ba212e0e?w=100&h=100&fit=crop",
-    name: "Minimalist Wool Overcoat",
-    sku: "MWO-042",
-    category: "Outerwear",
-    price: 249.0,
-    stock: 12,
-    status: "low-stock",
-  },
-  {
-    id: "3",
-    image: "https://images.unsplash.com/photo-1591525622414-24ff28e9ad3d?w=100&h=100&fit=crop",
-    name: "Linen Summer Trousers",
-    sku: "LST-089",
-    category: "Bottoms",
-    price: 75.0,
-    stock: 88,
-    status: "in-stock",
-  },
-  {
-    id: "4",
-    image: "https://images.unsplash.com/photo-1577628127503-e23226f127da?w=100&h=100&fit=crop",
-    name: "Cashmere Turtleneck",
-    sku: "CTN-102",
-    category: "Knitwear",
-    price: 120.0,
-    stock: 54,
-    status: "in-stock",
-  },
-  {
-    id: "5",
-    image: "https://images.unsplash.com/photo-1591028087437-1c309b6461ff?w=100&h=100&fit=crop",
-    name: "Oxford Cotton Shirt",
-    sku: "OCS-085",
-    category: "Menswear",
-    price: 65.0,
-    stock: 0,
-    status: "out-of-stock",
-  },
-];
-
-const getStatusColor = (status: Product["status"]) => {
+const getStatusColor = (status: string) => {
   switch (status) {
     case "in-stock":
       return "bg-green-100 text-green-800";
@@ -82,11 +20,34 @@ const getStatusColor = (status: Product["status"]) => {
       return "bg-yellow-100 text-yellow-800";
     case "out-of-stock":
       return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
   }
 };
 
-const getStatusLabel = (status: Product["status"]) => {
+const getStatusLabel = (status: string) => {
   switch (status) {
+    case "in-stock":
+      return "In Stock";
+    case "low-stock":
+      return "Low Stock";
+    case "out-of-stock":
+      return "Out of Stock";
+    default:
+      return status;
+  }
+};
+
+export default function Products() {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetchProducts()
+      .then(setProducts)
+      .catch((error) => console.error('Failed to fetch products:', error));
+  }, []);
+
+  return (
     case "in-stock":
       return "In Stock";
     case "low-stock":
@@ -150,16 +111,10 @@ export default function Products() {
                   Product Name
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
-                  SKU
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
-                  Category
+                  Description
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
                   Price
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
-                  Stock
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-700">
                   Status
@@ -170,9 +125,9 @@ export default function Products() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {mockProducts.map((product) => (
+              {products.map((product) => (
                 <tr
-                  key={product.id}
+                  key={product._id}
                   className="hover:bg-gray-50 transition-colors"
                 >
                   <td className="px-6 py-4">
@@ -188,16 +143,10 @@ export default function Products() {
                     {product.name}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {product.sku}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {product.category}
+                    {product.description}
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     ${product.price.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {product.stock} units
                   </td>
                   <td className="px-6 py-4">
                     <span
