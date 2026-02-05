@@ -21,7 +21,7 @@ const createProduct = asyncHandler(async (req, res) => {
         }
     }
 
-    if (!Array.isArray(sizes) || sizes.length === 0) {
+    if (!Array.isArray(parsedSizes) || parsedSizes.length === 0) {
         throw new ApiError(400, "Sizes are required");
     }
 
@@ -51,7 +51,7 @@ const createProduct = asyncHandler(async (req, res) => {
         status,
         description,
         category,
-        sizes,
+        sizes: parsedSizes,
         image: image?.url || ""
     })
 
