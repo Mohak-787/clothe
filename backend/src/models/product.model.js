@@ -23,10 +23,19 @@ const productSchema = new Schema({
         type: String,
         required: true
     },
-    size: {
-        type: Object,
-        required: true
-    },
+    sizes: [
+        {
+            size: {
+                type: String,
+                required: true
+            },
+            count: {
+                type: Number,
+                required: true,
+                min: 0
+            }
+        }
+    ],
     image: {
         type: String,
         required: true
