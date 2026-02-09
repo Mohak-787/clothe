@@ -16,8 +16,10 @@ app.use(cookieParser());
 
 // import routes
 import adminRoutes from "./routes/admin.route.js";
+import productRoutes from "./routes/product.route.js"
 
 // routes
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/products", productRoutes);
 
 export { app }
