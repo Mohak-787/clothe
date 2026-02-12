@@ -4,10 +4,9 @@ This is the backend of clothè website.
 
 ## Setup
 
-1. Copy `.env.example` to `.env`
-2. Fill all env values
-3. Install dependencies: `npm install`
-4. Run dev server: `npm run dev`
+1. Fill all env values
+2. Install dependencies: `npm install`
+3. Run dev server: `npm run dev`
 
 ## Auth Rules
 
