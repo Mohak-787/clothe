@@ -12,6 +12,7 @@ const customerSchema = new Schema({
         required: true,
         lowercase: true,
         trim: true,
+        index: true
     },
     phone: {
         type: String,
@@ -26,8 +27,13 @@ const customerSchema = new Schema({
     status: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        lowercase: true,
+        enum: ["active", "blocked"],
+        default: "active"
     }
 }, { timestamps: true });
 
-export const Customer = mongoose.Model("Customer", customerSchema);
+customerSchema.index({ email: 1, phone: 1 }, { unique: true });
+
+export const Customer = mongoose.model("Customer", customerSchema);

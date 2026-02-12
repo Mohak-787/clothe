@@ -4,26 +4,26 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Product } from "../models/product.model.js";
 import mongoose from "mongoose";
 
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const getProducts = asyncHandler(async (req, res) => {
   const products = await Product.find({});
-
-  if (!products) {
-    throw new ApiError(204, "No products available")
-  }
-
   res.status(200).json(
     new ApiResponse(200, products, "Products fetched successfully")
   );
 });
 
 const getProductById = asyncHandler(async (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new ApiError(404, "Product not found")
   }
 
   const product = await Product.findById(id);
+  if (!product) {
+    throw new ApiError(404, "Product not found")
+  }
 
   res.status(200).json(
     new ApiResponse(200, product, "Product fetched successfully")
@@ -31,12 +31,15 @@ const getProductById = asyncHandler(async (req, res) => {
 })
 
 const getProductByName = asyncHandler(async (req, res) => {
-  const { name } = req.body;
+  const name = req.params?.name?.trim();
+  if (!name) {
+    throw new ApiError(400, "Product name is required");
+  }
 
-  const product = Product.findOne({ name: name });
+  const product = await Product.findOne({ name: new RegExp(`^${escapeRegExp(name)}$`, "i") });
 
   if (!product) {
-    throw new ApiError(204, "No products available")
+    throw new ApiError(404, "Product not found")
   }
 
   res.status(200).json(
@@ -45,13 +48,12 @@ const getProductByName = asyncHandler(async (req, res) => {
 })
 
 const getProductByCategory = asyncHandler(async (req, res) => {
-  const { category } = req.body;
-
-  const products = Product.find({ category: category });
-
-  if (!products) {
-    throw new ApiError(204, "No products available")
+  const category = req.params?.category?.trim()?.toLowerCase();
+  if (!category) {
+    throw new ApiError(400, "Category is required");
   }
+
+  const products = await Product.find({ category });
 
   res.status(200).json(
     new ApiResponse(200, products, "Products fetched successfully")
