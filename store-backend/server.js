@@ -16,6 +16,41 @@ app.use(cors());
 app.use(helmet()); // It is security middleware that helps to protect app by setting various headers
 app.use(morgan("dev")); // Logs the request
 
-app.listen(PORT, () => {
-  console.log(`Server is running at PORT: ${PORT}`);
-});
+/**
+ * Import Routes
+ */
+import productRoutes from "./routes/product.route.js";
+
+/**
+ * Use Routes
+ */
+app.use("/api/products", productRoutes);
+
+import { sql } from "./config/db.js";
+async function connectDB() {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        image VARCHAR(255) NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    console.log("DB connected successfully");
+  } catch (error) {
+    console.error("Error connecting DB: ", error);
+  }
+}
+
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running at PORT: ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Error starting server: ", error);
+  });
